@@ -6,6 +6,10 @@ import rain from "../../Images/heavy-rain.png";
 import snow from "../../Images/snow.png";
 import sun from "../../Images/sun.png";
 import thunder from "../../Images/thunder.png";
+import Droplet from "../../Images/droplet.svg";
+import Wind from "../../Images/wind.svg";
+import { ReactComponent as WindIcon } from "../../Images/wind.svg";
+import { ReactComponent as DropletIcon } from "../../Images/droplet.svg";
 
 const WeatherComponent = () => {
   const [weatherData, setWeatherData] = useState(null);
@@ -13,6 +17,7 @@ const WeatherComponent = () => {
   const [error, setError] = useState(null);
   const [location, setLocation] = useState({ lat: null, lon: null });
   const [weatherImage, setWeatherImage] = useState("");
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const getLocation = () => {
@@ -42,18 +47,14 @@ const WeatherComponent = () => {
     if (location.lat && location.lon) {
       const fetchWeatherData = async () => {
         try {
-          console.log("Location: ", location);
           const response = await axios.get(
             `https://api.allorigins.win/get?url=${encodeURIComponent(
               `${process.env.REACT_APP_WEATHER_API}?lon=${location.lon}&lat=${location.lat}&units=metric`
             )}`
           );
-
-          console.log("API Response: ", response);
           const data = JSON.parse(response.data.contents);
           setWeatherData(data);
           console.log("Weather Data: ", data);
-          console.log("City: ", data.city);
           getWeatherImage(data.weather);
         } catch (err) {
           setError(err.message);
@@ -64,6 +65,14 @@ const WeatherComponent = () => {
       fetchWeatherData();
     }
   }, [location]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const getWeatherImage = (weather) => {
     switch (weather.toLowerCase()) {
@@ -97,6 +106,14 @@ const WeatherComponent = () => {
     }
   };
 
+  const formattedDate = currentTime.toLocaleDateString("en-US", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
+  const formattedTime = currentTime.toLocaleTimeString("en-UK");
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -109,30 +126,36 @@ const WeatherComponent = () => {
     <div>
       {weatherData ? (
         <div>
-          <div className="w-full justify-center mt-20">
+          <div className="w-full text-white justify-center mt-20">
+            <p className="text-3xl mb-4">{weatherData.city}</p>
             <img
               src={weatherImage}
               alt="Weather"
               className="w-40 h-40 m-auto"
             />
+            <p className="text-3xl">{weatherData.temperature} °C</p>
+            <p className="text-xl">{weatherData.weather}</p>
+            <p className="mt-4">
+              {formattedDate} <br /> {formattedTime}
+            </p>
           </div>
-          <div className="grid grid-cols-2 p-10 gap-4">
-            <div className="bg-blue-500 rounded h-20 py-6">
-              <p>{weatherData.city}</p>
-            </div>
-            <div className="bg-blue-500 rounded h-20 py-6">
-              <p>{weatherData.temperature} °C</p>
-            </div>
-            <div className="bg-blue-500 rounded h-20 py-6">
-              <p>{weatherData.weather}</p>
-            </div>
-            <div className="bg-blue-500 rounded h-20 py-4">
+          <div className="grid grid-cols-2 text-white p-10 gap-4">
+            <div className="bg-blue-400 rounded h-fit p-4">
               <p>
-                Humidity: <br />
-                {weatherData.humidity}%
+                <DropletIcon className="h-8 mx-auto mb-2 fill-white" />
+              </p>
+              <p>{weatherData.humidity}%</p>
+            </div>
+            <div className="bg-blue-400 rounded h-fit p-4">
+              <p>
+                <WindIcon className="h-8 mx-auto mb-2 fill-white" />
+              </p>
+              <p>
+                {weatherData.wind_speed} {weatherData.speed_unit}
               </p>
             </div>
           </div>
+          <p className="text-white text-xs">{weatherData.credits}</p>
         </div>
       ) : (
         <p>No data available</p>
