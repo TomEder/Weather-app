@@ -1,4 +1,4 @@
-Weather Application
+**Weather Application**
 
 This is a weather application built using React that fetches weather data for the user's current location. The app utilizes geolocation to determine the user's coordinates and displays relevant weather information such as temperature, weather condition, humidity, and the current time.
 
